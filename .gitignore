@@ -1,0 +1,26 @@
+node_modules
+.swc
+storybook-static
+
+# Testing
+coverage
+
+# Production
+public/*
+!public/*favicon.ico
+!public/logo192.png
+!public/logo512.png
+!public/manifest.json
+.adminjs
+
+#Webpack Cache
+.test_cache/*
+.temp_cache/*
+
+
+# Misc
+.DS_Store
+*.log
+dist
+.vscode/*
+yarn.lock

@@ -1,0 +1,26 @@
+// -----------------
+// Margin And Padding fixed measurements
+// -----------------
+$xs: 8px;
+$xsmedium: 10px;
+$small: 12px;
+$xsmall: 14px;
+$medium: 16px;
+$lmedium: 18px;
+$llmedium: 20px;
+$large: 24px;
+$xlarge: 32px;
+$xxlarge: 44px;
+
+$spaceVariables: (
+  xs: $xs,
+  xsmedium: $xsmedium,
+  small: $small,
+  xsmall: $xsmall,
+  medium: $medium,
+  lmedium: $lmedium,
+  llmedium: $llmedium,
+  large: $large,
+  xlarge: $xlarge,
+  xxlarge: $xxlarge,
+);
