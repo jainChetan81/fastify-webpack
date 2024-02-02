@@ -1,34 +1,22 @@
+import { ChunkExtractor } from "@loadable/server";
+import { Action } from "@reduxjs/toolkit";
 import path from "path";
 import { renderToString } from "react-dom/server";
-import { StaticRouter } from "react-router-dom";
-import { renderRoutes, matchRoutes } from "react-router-config";
-import { Provider } from "react-redux";
-import { ChunkExtractor } from "@loadable/server";
 import { Helmet } from "react-helmet";
-import { Action } from "@reduxjs/toolkit";
-import NodeFS from "node:fs/promises";
-
-import createStore from "../store";
-import renderHtml from "./renderHtml";
-import routes from "../routes";
+import { Provider } from "react-redux";
+import { matchRoutes, renderRoutes } from "react-router-config";
+import { StaticRouter } from "react-router-dom";
 import { FastifyReply, FastifyRequest } from "fastify";
 
-async function loadStats(filepath: string) {
-  const stats = JSON.parse(await NodeFS.readFile(filepath, "utf-8"));
-  if (stats.namedChunkGroups) {
-    for (const key in stats.namedChunkGroups) {
-      if (stats.namedChunkGroups.hasOwnProperty(key)) {
-        const item = stats.namedChunkGroups[key];
-        item.childAssets = item.childAssets || {};
-      }
-    }
-  }
-  return stats;
-}
+import { Request, Response, NextFunction } from "express";
+import routes from "../routes";
+import createStore from "../store";
+import renderHtml from "./renderHtml";
 
 export default async (
-  req: FastifyRequest,
-  res: FastifyReply,
+  req: Request,
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   const { store } = createStore({ url: req.url });
 
@@ -59,9 +47,7 @@ export default async (
     await loadBranchData();
 
     const statsFile = path.resolve(process.cwd(), "public/loadable-stats.json");
-    const extractor = new ChunkExtractor({
-      stats: await loadStats(statsFile),
-    });
+    const extractor = new ChunkExtractor({ statsFile });
 
     const staticContext: Record<string, any> = {};
     const App = extractor.collectChunks(
@@ -82,7 +68,9 @@ export default async (
     // Check if the render result contains a redirect, if so we need to set
     // the specific status and redirect header and end the response
     if (staticContext.url) {
-      res.status(301).header("Location", staticContext.url);
+      res.status(301)
+        .header('content-type', 'text/html; charset=utf-8')
+        .header("Location", staticContext.url);
       res.send()
 
       return;
@@ -91,10 +79,11 @@ export default async (
     // Pass the route and initial state into html template, the "statusCode" comes from <NotFound />
     res
       .status(staticContext.statusCode === "404" ? 404 : 200)
+      .header('content-type', 'text/html; charset=utf-8')
       .send(renderHtml(head, extractor, htmlContent, initialState));
   } catch (error) {
     res.status(404).send("Not Found :(");
     console.error(`==> 😭  Rendering routes error: ${error}`);
   }
-
+  next()
 };

@@ -1,7 +1,6 @@
 import { ChunkExtractor } from "@loadable/server";
 import { HelmetData } from "react-helmet";
 import serialize from "serialize-javascript";
-import { minify } from "html-minifier";
 
 export default (
   head: HelmetData,
@@ -48,16 +47,5 @@ export default (
     </html>
   `;
 
-  // html-minifier configuration, refer to "https://github.com/kangax/html-minifier" for more configuration
-  const minifyConfig = {
-    collapseWhitespace: true,
-    removeComments: true,
-    trimCustomFragments: true,
-    minifyCSS: true,
-    minifyJS: true,
-    minifyURLs: true,
-  };
-
-  // Minify HTML in production
-  return __DEV__ ? html : minify(html, minifyConfig);
+  return html
 };
