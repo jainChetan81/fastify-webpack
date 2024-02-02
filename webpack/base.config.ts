@@ -3,7 +3,6 @@ import webpack, { Configuration, WebpackPluginInstance, RuleSetUseItem } from "w
 import { WebpackManifestPlugin } from "webpack-manifest-plugin";
 import TerserPlugin from "terser-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import LoadablePlugin from "@loadable/webpack-plugin";
 
 export const isDev = process.env.NODE_ENV === "development";
@@ -20,8 +19,7 @@ const getStyleLoaders = (isWeb: boolean, isSass?: boolean) => {
 					exportOnlyLocals: !isWeb
 				}
 			}
-		},
-		{ loader: "postcss-loader" }
+		}
 	];
 
 	if (isWeb) loaders = [MiniCssExtractPlugin.loader, ...loaders];
@@ -65,8 +63,7 @@ const getPlugins = (isWeb: boolean) => {
 			__CLIENT__: isWeb,
 			__SERVER__: !isWeb,
 			__DEV__: isDev
-		}),
-		isDev && new ForkTsCheckerWebpackPlugin()
+		})
 	].filter(Boolean);
 
 	return plugins;

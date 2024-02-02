@@ -5,7 +5,6 @@ import { Helmet } from "react-helmet";
 import logo from "../static/logo.svg";
 import config from "../config";
 // Import your global styles here
-import "normalize.css/normalize.css";
 import styles from "./styles.module.scss";
 
 interface Route {

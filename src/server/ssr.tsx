@@ -5,13 +5,13 @@ import { renderRoutes, matchRoutes } from "react-router-config";
 import { Provider } from "react-redux";
 import { ChunkExtractor } from "@loadable/server";
 import { Helmet } from "react-helmet";
-import { Request, Response, NextFunction } from "express";
 import { Action } from "@reduxjs/toolkit";
 import NodeFS from "node:fs/promises";
 
 import createStore from "../store";
 import renderHtml from "./renderHtml";
 import routes from "../routes";
+import { FastifyReply, FastifyRequest } from "fastify";
 
 async function loadStats(filepath: string) {
   const stats = JSON.parse(await NodeFS.readFile(filepath, "utf-8"));
@@ -27,15 +27,14 @@ async function loadStats(filepath: string) {
 }
 
 export default async (
-  req: Request,
-  res: Response,
-  next: NextFunction
+  req: FastifyRequest,
+  res: FastifyReply,
 ): Promise<void> => {
   const { store } = createStore({ url: req.url });
 
   // The method for loading data from server-side
   const loadBranchData = (): Promise<any> => {
-    const branch = matchRoutes(routes, req.path);
+    const branch = matchRoutes(routes, req.url);
     const promises = branch.map(({ route, match }) => {
       if (route.loadData)
         return Promise.all(
@@ -68,7 +67,7 @@ export default async (
     const App = extractor.collectChunks(
       <Provider store={store}>
         {/* Setup React-Router server-side rendering */}
-        <StaticRouter location={req.path} context={staticContext}>
+        <StaticRouter location={req.url} context={staticContext}>
           {renderRoutes(routes)}
         </StaticRouter>
       </Provider>
@@ -83,8 +82,8 @@ export default async (
     // Check if the render result contains a redirect, if so we need to set
     // the specific status and redirect header and end the response
     if (staticContext.url) {
-      res.status(301).setHeader("Location", staticContext.url);
-      res.end();
+      res.status(301).header("Location", staticContext.url);
+      res.send()
 
       return;
     }
@@ -98,5 +97,4 @@ export default async (
     console.error(`==> 😭  Rendering routes error: ${error}`);
   }
 
-  next();
 };
