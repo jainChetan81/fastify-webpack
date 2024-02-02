@@ -40,7 +40,10 @@ export default async (faviconName: string) => {
 	if (__DEV__) devServer(app);
 
 	// Use React server-side rendering middleware
+	// FIXME: when using express
 	app.get("*", ssr);
+	// FIXME: if using fastify
+	// fastifyApp.get("*", ssr);
 
 	fastifyApp.listen(config.PORT, config.HOST, (error) => {
 		if (error) console.error(`==> 😭  OMG!!! ${error}`);

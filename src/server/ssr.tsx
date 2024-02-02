@@ -14,9 +14,12 @@ import createStore from "../store";
 import renderHtml from "./renderHtml";
 
 export default async (
+  // using express
   req: Request,
   res: Response,
   next: NextFunction
+  // FIXME: using fastify
+  // req: FastifyRequest, res: FastifyReply
 ): Promise<void> => {
   const { store } = createStore({ url: req.url });
 
@@ -52,7 +55,6 @@ export default async (
     const staticContext: Record<string, any> = {};
     const App = extractor.collectChunks(
       <Provider store={store}>
-        {/* Setup React-Router server-side rendering */}
         <StaticRouter location={req.url} context={staticContext}>
           {renderRoutes(routes)}
         </StaticRouter>
@@ -61,12 +63,8 @@ export default async (
 
     const initialState = store.getState();
     const htmlContent = renderToString(App);
-    // head must be placed after "renderToString"
-    // see: https://github.com/nfl/react-helmet#server-usage
     const head = Helmet.renderStatic();
 
-    // Check if the render result contains a redirect, if so we need to set
-    // the specific status and redirect header and end the response
     if (staticContext.url) {
       res.status(301)
         .header('content-type', 'text/html; charset=utf-8')
@@ -85,5 +83,6 @@ export default async (
     res.status(404).send("Not Found :(");
     console.error(`==> 😭  Rendering routes error: ${error}`);
   }
+  // if using express
   next()
 };
