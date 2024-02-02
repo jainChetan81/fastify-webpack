@@ -17,11 +17,7 @@ const getPlugins = () => {
 	];
 
 	if (isDev)
-		plugins = [
-			...plugins,
-			new webpack.HotModuleReplacementPlugin(),
-			new ReactRefreshWebpackPlugin({ overlay: { sockIntegration: "whm" } })
-		];
+		plugins = [...plugins, new webpack.HotModuleReplacementPlugin(), new ReactRefreshWebpackPlugin({ overlay: { sockIntegration: "whm" } })];
 
 	return plugins;
 };

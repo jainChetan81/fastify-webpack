@@ -1,7 +1,7 @@
+import { FastifyInstance } from "fastify";
 import config from "../config";
-import { Express } from "express";
 
-export default (app: Express): void => {
+export default (app: FastifyInstance): void => {
 	const webpack = require("webpack");
 	const webpackConfig = require("../../webpack/client.config").default;
 	const compiler = webpack(webpackConfig);
@@ -10,8 +10,8 @@ export default (app: Express): void => {
 		serverSideRender: true
 	});
 
-	app.use(instance);
-	app.use(
+	app.register(instance);
+	app.register(
 		require("webpack-hot-middleware")(compiler, {
 			log: false,
 			path: "/__webpack_hmr",

@@ -8,19 +8,16 @@ import { matchRoutes, renderRoutes } from "react-router-config";
 import { StaticRouter } from "react-router-dom";
 import { FastifyReply, FastifyRequest } from "fastify";
 
-import { Request, Response, NextFunction } from "express";
 import routes from "../routes";
 import createStore from "../store";
 import renderHtml from "./renderHtml";
 
 export default async (
-  // using express
-  req: Request,
-  res: Response,
-  next: NextFunction
-  // FIXME: using fastify
-  // req: FastifyRequest, res: FastifyReply
+  req: FastifyRequest,
+  res: FastifyReply
 ): Promise<void> => {
+  console.log(`==> 🌎  Requested URL: ${req.url}`);
+
   const { store } = createStore({ url: req.url });
 
   // The method for loading data from server-side
@@ -80,9 +77,7 @@ export default async (
       .header('content-type', 'text/html; charset=utf-8')
       .send(renderHtml(head, extractor, htmlContent, initialState));
   } catch (error) {
-    res.status(404).send("Not Found :(");
+    res.status(404).send("Not Found :(")
     console.error(`==> 😭  Rendering routes error: ${error}`);
   }
-  // if using express
-  next()
 };
