@@ -45,7 +45,13 @@ export default async (faviconName: string) => {
 	// FIXME: if using fastify
 	// fastifyApp.get("*", ssr);
 
+	// FIXME: when using fastify
 	fastifyApp.listen(config.PORT, config.HOST, (error) => {
 		if (error) console.error(`==> 😭  OMG!!! ${error}`);
 	});
+
+	// FIXME: using express
+	// app.listen(config.PORT, config.HOST, (error) => {
+	// 	if (error) console.error(`==> 😭  OMG!!! ${error}`);
+	// });
 };
