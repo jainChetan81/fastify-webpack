@@ -27,13 +27,14 @@ export default async (faviconName: string) => {
 	});
 
 	// Enable dev-server in development
-	if (__DEV__) devServer(fastifyApp);
+	// if (__DEV__) devServer(fastifyApp);
 
 	// Use React server-side rendering middleware
 	fastifyApp.get("/test", (req, reply) => reply.code(200).send({ a: 1 }));
 	// FIXME: breaking here
-	fastifyApp.get("*", (req, rep) => {
-		ssr(req, rep);
+	fastifyApp.get("*", async (req, rep) => {
+		await ssr(req, rep);
+		return rep;
 	});
 	fastifyApp.listen({ port: config.PORT, host: config.HOST }, (error, address) => {
 		if (error) {
