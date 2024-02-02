@@ -14,10 +14,8 @@ import renderHtml from "./renderHtml";
 
 export default async (
   req: FastifyRequest,
-  res: FastifyReply
-): Promise<void> => {
-  console.log(`==> 🌎  Requested URL: ${req.url}`);
-
+  reply: FastifyReply
+): Promise<FastifyReply> => {
   const { store } = createStore({ url: req.url });
 
   // The method for loading data from server-side
@@ -31,7 +29,7 @@ export default async (
               params: match.params,
               getState: store.getState,
               req,
-              res,
+              res: reply,
             })
             .map((item: Action) => store.dispatch(item))
         );
@@ -63,21 +61,17 @@ export default async (
     const head = Helmet.renderStatic();
 
     if (staticContext.url) {
-      res.status(301)
+      return reply.status(301)
         .header('content-type', 'text/html; charset=utf-8')
         .header("Location", staticContext.url);
-      res.send()
 
-      return;
     }
-
-    // Pass the route and initial state into html template, the "statusCode" comes from <NotFound />
-    res
+    return reply
       .status(staticContext.statusCode === "404" ? 404 : 200)
       .header('content-type', 'text/html; charset=utf-8')
       .send(renderHtml(head, extractor, htmlContent, initialState));
   } catch (error) {
-    res.status(404).send("Not Found :(")
     console.error(`==> 😭  Rendering routes error: ${error}`);
+    return reply.status(404).send("Not Found :(")
   }
 };

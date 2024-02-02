@@ -34,7 +34,6 @@ export default async (faviconName: string) => {
 	// FIXME: breaking here
 	fastifyApp.get("*", async (req, rep) => {
 		await ssr(req, rep);
-		return rep;
 	});
 	fastifyApp.listen({ port: config.PORT, host: config.HOST }, (error, address) => {
 		if (error) {
