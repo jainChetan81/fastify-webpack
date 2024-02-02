@@ -8,7 +8,7 @@ import ssr from "./ssr";
 export default async (faviconName: string) => {
 	const fastifyApp = Fastify();
 
-	fastifyApp.register(require("@fastify/helmet"), {
+	await fastifyApp.register(require("@fastify/helmet"), {
 		contentSecurityPolicy: false,
 		global: true
 	});
@@ -18,11 +18,12 @@ export default async (faviconName: string) => {
 	// fastifyApp.register(hpp());
 
 	// Compress all requests
-	fastifyApp.register(require("@fastify/compress"), { global: false });
+	await fastifyApp.register(require("@fastify/compress"), { global: false });
 
 	// Use for http request debug (show errors only)
-	fastifyApp.register(require("@fastify/static"), {
+	await fastifyApp.register(require("@fastify/static"), {
 		root: path.join(process.cwd(), "public"),
+		wildcard: false,
 		prefix: "/" // optional: default '/'
 	});
 
@@ -30,11 +31,9 @@ export default async (faviconName: string) => {
 	if (__DEV__) devServer(fastifyApp);
 
 	// Use React server-side rendering middleware
-	fastifyApp.get("/test", (req, reply) => reply.code(200).send({ a: 1 }));
+	fastifyApp.get("/test", (_req, reply) => reply.code(200).send({ a: 1 }));
 	// FIXME: breaking here
-	fastifyApp.get("*", async (req, rep) => {
-		await ssr(req, rep);
-	});
+	fastifyApp.get("*", ssr);
 	fastifyApp.listen({ port: config.PORT, host: config.HOST }, (error, address) => {
 		if (error) {
 			fastifyApp.log.error(`==> 😭  OMG!!! ${error}`);
