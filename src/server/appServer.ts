@@ -27,7 +27,7 @@ export default async (faviconName: string) => {
 	});
 
 	// Enable dev-server in development
-	// if (__DEV__) devServer(fastifyApp);
+	if (__DEV__) devServer(fastifyApp);
 
 	// Use React server-side rendering middleware
 	fastifyApp.get("/test", (req, reply) => reply.code(200).send({ a: 1 }));
