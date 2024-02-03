@@ -14,8 +14,7 @@ const getStyleLoaders = (isWeb: boolean, isSass?: boolean) => {
 			options: {
 				importLoaders: isSass ? 2 : 1,
 				modules: {
-					auto: true,
-					localIdentName: isDev ? "[path][name]__[local]" : "[hash:base64]",
+					localIdentName: "[name]__[local]",
 					exportOnlyLocals: !isWeb
 				}
 			}
@@ -30,16 +29,7 @@ const getStyleLoaders = (isWeb: boolean, isSass?: boolean) => {
 			{
 				loader: "sass-loader",
 				options: {
-					implementation: require("sass"),
-					additionalData: (...args: any[]) => {
-						const themePath = path.resolve(process.cwd(), `src/theme/core.scss`);
-						const loaderContext = args[1];
-						const data = args[0];
-						// More information about available properties https://webpack.js.org/api/loaders/
-						const { resourcePath } = loaderContext;
-						const relativePath2 = path.relative(resourcePath, themePath).substring(3);
-						return `@import "${relativePath2}";${data}`;
-					}
+					implementation: require("sass")
 				}
 			}
 		];

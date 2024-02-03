@@ -11,8 +11,9 @@ const getPlugins = () => {
 	let plugins: WebpackPluginInstance[] = [
 		new MiniCssExtractPlugin({
 			// Don't use hash in development, we need the persistent for "renderHtml.ts"
-			filename: isDev ? "[name].css" : "[name].[contenthash].css",
-			chunkFilename: isDev ? "[id].css" : "[id].[contenthash].css"
+			filename: isDev ? "css/[name].css" : "css/[name].[contenthash].css",
+			chunkFilename: isDev ? "css/[id].css" : "css/[id].[contenthash].css",
+			ignoreOrder: true
 		})
 	];
 
