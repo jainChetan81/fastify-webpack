@@ -1,9 +1,7 @@
 import path from "path";
-import webpack, { Configuration } from "webpack";
+import rspack, { Configuration } from "@rspack/core";
 import nodeExternals from "webpack-node-externals";
 import merge from "webpack-merge";
-// @ts-ignore
-import CopyWebpackPlugin from "copy-webpack-plugin";
 
 import baseConfig, { isDev } from "./base.config";
 
@@ -23,33 +21,27 @@ const config: Configuration = {
 		nodeExternals({
 			// Load non-javascript files with extensions, presumably via loaders
 			allowlist: [/\.(?!(?:jsx?|json)$).{1,5}$/i]
-		})
+		}) as any
 	],
 	plugins: [
 		// Adding source map support to node.js (for stack traces)
-		new webpack.BannerPlugin({
+		new rspack.BannerPlugin({
 			banner: 'require("source-map-support").install();',
 			raw: true
 		}),
-		new CopyWebpackPlugin({
+		new rspack.CopyRspackPlugin({
 			patterns: [
 				{
 					from: "src/components/**/assets/*.*",
-					to({ absoluteFilename }: any) {
-						return `../assets/images/components/${absoluteFilename.split("src/components/")[1]}`;
-					}
+					to: `../assets/images/`
 				},
 				{
 					from: "src/pages/**/assets/*.*",
-					to({ absoluteFilename }: any) {
-						return `../assets/images/pages/${absoluteFilename.split("src/pages/")[1]}`;
-					}
+					to: `../assets/images/`
 				},
 				{
 					from: "src/app/**/assets/*.*",
-					to({ absoluteFilename }: any) {
-						return `../assets/images/app/${absoluteFilename.split("src/app/")[1]}`;
-					}
+					to: `../assets/images/`
 				}
 			]
 		})

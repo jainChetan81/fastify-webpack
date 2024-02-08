@@ -2,9 +2,9 @@ import { FastifyInstance } from "fastify";
 import config from "../config";
 
 export default (app: FastifyInstance): void => {
-	const webpack = require("webpack");
-	const webpackConfig = require("../../webpack/client.config").default;
-	const compiler = webpack(webpackConfig);
+	const rspack = require("@rspack/core");
+	const rspackConfig = require("../../rspack/client.config").default;
+	const compiler = rspack(rspackConfig);
 	const instance = require("webpack-dev-middleware")(compiler, {
 		headers: { "Access-Control-Allow-Origin": "*" },
 		serverSideRender: true

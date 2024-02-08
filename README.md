@@ -1,3 +1,3 @@
 `yarn install`
-`yarn dev` for webpack dev server
+`yarn dev`
 `yarn build`

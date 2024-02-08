@@ -1,27 +1,12 @@
-import path from "path";
-import webpack, { Configuration, WebpackPluginInstance, RuleSetUseItem } from "webpack";
-import { WebpackManifestPlugin } from "webpack-manifest-plugin";
-import TerserPlugin from "terser-webpack-plugin";
-import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import LoadablePlugin from "@loadable/webpack-plugin";
+import rspack, { Configuration, RspackPluginInstance, RuleSetUseItem } from "@rspack/core";
+import path from "path";
+import { WebpackManifestPlugin } from "rspack-manifest-plugin";
 
 export const isDev = process.env.NODE_ENV === "development";
 
-const getStyleLoaders = (isWeb: boolean, isSass?: boolean) => {
-	let loaders: RuleSetUseItem[] = [
-		{
-			loader: "css-loader",
-			options: {
-				importLoaders: isSass ? 2 : 1,
-				modules: {
-					localIdentName: "[name]__[local]",
-					exportOnlyLocals: !isWeb
-				}
-			}
-		}
-	];
-
-	if (isWeb) loaders = [MiniCssExtractPlugin.loader, ...loaders];
+const getStyleLoaders = (isSass?: boolean) => {
+	let loaders: RuleSetUseItem[] = [];
 
 	if (isSass)
 		loaders = [
@@ -29,7 +14,16 @@ const getStyleLoaders = (isWeb: boolean, isSass?: boolean) => {
 			{
 				loader: "sass-loader",
 				options: {
-					implementation: require("sass")
+					implementation: require("sass"),
+					additionalData: (...args: any[]) => {
+						const themePath = path.resolve(process.cwd(), `src/theme/core.scss`);
+						const loaderContext = args[1];
+						const data = args[0];
+						// More information about available properties https://webpack.js.org/api/loaders/
+						const { resourcePath } = loaderContext;
+						const relativePath2 = path.relative(resourcePath, themePath).substring(3);
+						return `@import "${relativePath2}";${data}`;
+					}
 				}
 			}
 		];
@@ -39,7 +33,7 @@ const getStyleLoaders = (isWeb: boolean, isSass?: boolean) => {
 
 const getPlugins = (isWeb: boolean) => {
 	let plugins = [
-		new webpack.ProgressPlugin(),
+		new rspack.ProgressPlugin(),
 		new WebpackManifestPlugin({
 			fileName: path.resolve(process.cwd(), "public/webpack-assets.json"),
 			filter: (file) => file.isInitial
@@ -49,25 +43,31 @@ const getPlugins = (isWeb: boolean) => {
 			filename: "../loadable-stats.json"
 		}),
 		// Setting global variables
-		new webpack.DefinePlugin({
+		new rspack.DefinePlugin({
 			__CLIENT__: isWeb,
 			__SERVER__: !isWeb,
 			__DEV__: isDev
 		})
-	].filter(Boolean);
+	];
 
 	return plugins;
 };
 
 const config = (isWeb = false): Configuration => ({
 	mode: isDev ? "development" : "production",
-	stats: "minimal",
+	stats: "normal",
 	context: path.resolve(process.cwd()),
 	output: { clean: true },
-	optimization: {
-		minimizer: [new TerserPlugin({ terserOptions: { compress: { drop_console: true } }, parallel: true, minify: TerserPlugin.swcMinify })]
+	optimization: { minimizer: [new rspack.SwcJsMinimizerRspackPlugin({ dropConsole: true })] },
+	plugins: getPlugins(isWeb) as RspackPluginInstance[],
+	builtins: {
+		css: {
+			modules: {
+				localIdentName: "[name]__[local]",
+				exportsOnly: !isWeb
+			}
+		}
 	},
-	plugins: getPlugins(isWeb) as WebpackPluginInstance[],
 	module: {
 		rules: [
 			{
@@ -76,17 +76,19 @@ const config = (isWeb = false): Configuration => ({
 				use: [
 					{
 						loader: "swc-loader",
-						options: webpackSwcConfig
+						options: rspackSwcConfig
 					}
 				]
 			},
 			{
 				test: /\.css$/,
-				use: getStyleLoaders(isWeb)
+				use: getStyleLoaders(),
+				type: "css/module"
 			},
 			{
 				test: /\.(scss|sass)$/,
-				use: getStyleLoaders(isWeb, true)
+				use: getStyleLoaders(true),
+				type: "css/module"
 			},
 			{
 				test: /\.(woff2?|eot|ttf|otf)$/i,
@@ -107,7 +109,7 @@ const config = (isWeb = false): Configuration => ({
 });
 
 export default config;
-const webpackSwcConfig = {
+const rspackSwcConfig = {
 	sourceMaps: true,
 	jsc: {
 		// externalHelpers: The output code depends on helper functions(like browserlist) to support the target environment
