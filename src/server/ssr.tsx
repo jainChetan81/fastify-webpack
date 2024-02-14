@@ -1,29 +1,16 @@
-import { ChunkExtractor } from "@loadable/server";
 import { Action } from "@reduxjs/toolkit";
-import path from "path";
 import { renderToString } from "react-dom/server";
 import { Helmet } from "react-helmet";
 import { Provider } from "react-redux";
 import { matchRoutes, renderRoutes } from "react-router-config";
 import { StaticRouter } from "react-router-dom";
 import { FastifyReply, FastifyRequest } from "fastify";
-import NodeFS from "node:fs/promises"
 
 import routes from "../routes";
 import createStore from "../store";
 import renderHtml from "./renderHtml";
-async function loadStats(filepath: string) {
-  const stats = JSON.parse(await NodeFS.readFile(filepath, "utf-8"));
-  if (stats.namedChunkGroups) {
-    for (const key in stats.namedChunkGroups) {
-      if (stats.namedChunkGroups.hasOwnProperty(key)) {
-        const item = stats.namedChunkGroups[key];
-        item.childAssets = item.childAssets || {};
-      }
-    }
-  }
-  return stats;
-}
+import loadableConfig from "./loadable-config";
+
 export default async (
   req: FastifyRequest,
   reply: FastifyReply
@@ -31,7 +18,7 @@ export default async (
   const { store } = createStore({ url: req.url });
 
   // The method for loading data from server-side
-  const loadBranchData = (): Promise<any> => {
+  const loadBranchData = () => {
     const branch = matchRoutes(routes, req.url);
     const promises = branch.map(({ route, match }) => {
       if (route.loadData)
@@ -56,12 +43,9 @@ export default async (
     // Load data from server-side first
     await loadBranchData();
 
-    const statsFile = path.resolve(process.cwd(), "public/loadable-stats.json");
-    const extractor = new ChunkExtractor({
-      stats: await loadStats(statsFile),
-    });
 
     const staticContext: Record<string, any> = {};
+    const extractor = await loadableConfig();
     const App = extractor.collectChunks(
       <Provider store={store}>
         <StaticRouter location={req.url} context={staticContext}>

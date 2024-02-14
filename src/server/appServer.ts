@@ -1,12 +1,15 @@
+import express from "express";
 import Fastify from "fastify";
 import hpp from "hpp";
 import path from "path";
 import config from "../config";
 import devServer from "./devServer";
 
-import ssr from "./ssr";
-export default (faviconName: string) => {
+import render404Page from "./404";
+import renderRoutes from "./renderRoutes";
+export default async (faviconName: string) => {
 	const fastifyApp = Fastify();
+	const app = express();
 
 	fastifyApp.register(require("@fastify/helmet"), {
 		contentSecurityPolicy: false,
@@ -15,7 +18,7 @@ export default (faviconName: string) => {
 
 	// Prevent HTTP parameter pollution
 	// FIXME: any way to use hpp with fastify
-	// fastifyApp.register(hpp());
+	app.use(hpp());
 
 	// Compress all requests
 	fastifyApp.register(require("@fastify/compress"), { global: false });
@@ -31,13 +34,30 @@ export default (faviconName: string) => {
 	if (__DEV__) devServer(fastifyApp);
 
 	// Use React server-side rendering middleware
-	fastifyApp.get("/test", (_req, reply) => reply.code(200).send({ a: 1 }));
-	fastifyApp.get("*", ssr);
+	fastifyApp.get("/fastify", (_req, reply) => reply.code(200).send({ a: 1 }));
+	fastifyApp.get("/fastify-error", (_req, reply) => {
+		throw new Error("something");
+	});
+	// for ssr routes
+	renderRoutes(fastifyApp);
+
+	fastifyApp.setNotFoundHandler((req, reply) => {
+		reply
+			.code(404)
+			.header("content-type", "text/html; charset=utf-8")
+			.send(render404Page(config, new Error(`Page Not Found | ${req.url}`), 404));
+	});
+	fastifyApp.setErrorHandler((error, _req, reply) => {
+		console.log({ error });
+		reply.code(500).header("content-type", "text/html; charset=utf-8").send(render404Page(config, error, 500));
+	});
+	await fastifyApp.register(require("@fastify/express"));
+
 	fastifyApp.listen({ port: config.PORT, host: config.HOST }, (error, address) => {
 		if (error) {
-			fastifyApp.log.error(`==> 😭  OMG!!! ${error}`);
+			console.log(`==> 😭  OMG!!! ${error}`);
 			process.exit(1);
 		}
-		fastifyApp.log.info(`server listening on ${address}`);
+		console.log(`server listening on ${address}`);
 	});
 };

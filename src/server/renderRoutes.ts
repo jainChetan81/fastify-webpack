@@ -4,8 +4,6 @@ import routesApp from "../routes";
 
 export default (webRouter: FastifyInstance) => {
 	const activeRoutes = getActiveRoutes(routesApp);
-	console.log({ activeRoutes });
-
 	activeRoutes.forEach((route) => {
 		webRouter.get(route, (req, res) => ssr(req, res));
 	});
