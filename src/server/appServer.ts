@@ -23,22 +23,20 @@ export default async (faviconName: string) => {
 	// Compress all requests
 	fastifyApp.register(require("@fastify/compress"), { global: false });
 
-	// Use for http request debug (show errors only)
 	fastifyApp.register(require("@fastify/static"), {
 		root: path.join(process.cwd(), "public"),
 		wildcard: false,
-		prefix: "/" // optional: default '/'
+		prefix: "/"
 	});
 
 	// Enable dev-server in development
 	if (__DEV__) devServer(fastifyApp);
 
-	// Use React server-side rendering middleware
 	fastifyApp.get("/fastify", (_req, reply) => reply.code(200).send({ a: 1 }));
 	fastifyApp.get("/fastify-error", (_req, reply) => {
 		throw new Error("something");
 	});
-	// for ssr routes
+	// Use React server-side rendering middleware
 	renderRoutes(fastifyApp);
 
 	fastifyApp.setNotFoundHandler((req, reply) => {
