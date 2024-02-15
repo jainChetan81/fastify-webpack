@@ -7,9 +7,10 @@ import devServer from "./devServer";
 
 import render404Page from "./404";
 import renderRoutes from "./renderRoutes";
+import { apiMiddleware, webApiRoute } from "./fastifyApi";
 export default async (faviconName: string) => {
 	const fastifyApp = Fastify();
-	const app = express();
+	const expressApp = express();
 
 	fastifyApp.register(require("@fastify/helmet"), {
 		contentSecurityPolicy: false,
@@ -18,7 +19,7 @@ export default async (faviconName: string) => {
 
 	// Prevent HTTP parameter pollution
 	// FIXME: any way to use hpp with fastify
-	app.use(hpp());
+	expressApp.use(hpp());
 
 	// Compress all requests
 	fastifyApp.register(require("@fastify/compress"), { global: false });
@@ -36,6 +37,11 @@ export default async (faviconName: string) => {
 	fastifyApp.get("/fastify-error", (_req, reply) => {
 		throw new Error("something");
 	});
+
+	fastifyApp.register(webApiRoute, { prefix: "api" });
+
+	// fastifyApp.get("/api", { preHandler: apiMiddleware }, webApiRoute);
+
 	// Use React server-side rendering middleware
 	renderRoutes(fastifyApp);
 
