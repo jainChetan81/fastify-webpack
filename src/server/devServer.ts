@@ -21,6 +21,7 @@ export default (app: FastifyInstance): void => {
 
 	instance.waitUntilValid(() => {
 		const url = `http://${config.HOST}:${config.PORT}`;
+		console.log("routes==>", app.printRoutes());
 		console.info(`==> 🌎  Listening at ${url}`);
 	});
 };
