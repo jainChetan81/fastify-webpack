@@ -1,6 +1,6 @@
 import fastify, { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
-const testApi = (_req: FastifyRequest, res: FastifyReply) => {
-	res.send({ test: 1 });
+const testApi = (req: FastifyRequest<{ Querystring: { v?: number } }>, res: FastifyReply) => {
+	res.send({ test: 1, query: req.query.v });
 };
 const webApi1 = (webRouter: FastifyInstance, _opts: any, done: any) => {
 	webRouter.get("/cities", { preHandler: apiMiddleware }, async (_req, res) => {
