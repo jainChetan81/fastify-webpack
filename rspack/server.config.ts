@@ -5,7 +5,7 @@ import merge from "webpack-merge";
 
 import baseConfig, { isDev } from "./base.config";
 
-const config: Configuration = {
+const config = (isWeb = false): Configuration => ({
 	target: "node",
 	devtool: isDev ? "inline-source-map" : "source-map",
 	entry: "./src/server",
@@ -46,6 +46,6 @@ const config: Configuration = {
 			]
 		})
 	]
-};
+});
 
-export default merge(baseConfig(false), config);
+export default merge(baseConfig(false), config());
