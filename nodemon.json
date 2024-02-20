@@ -1,8 +1,3 @@
 {
-	"watch": ["src/server"],
-	"ext": "js,ts,json",
-	"ignore": ["src/**/*.module.scss", "src/**/*.svg", "src/static/logo.svg"],
-	"execMap": {
-		"ts": "swc-node"
-	}
+	"watch": ["src/server", "rspack"]
 }
